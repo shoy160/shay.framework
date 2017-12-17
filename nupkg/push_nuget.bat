@@ -1,0 +1,1 @@
+"..\tools\nuget\NuGet.exe" "push" "Shay.Core.1.0.0.0.nupkg" "kaixinkeji" -Source http://192.168.11.29:82/api/v2/package

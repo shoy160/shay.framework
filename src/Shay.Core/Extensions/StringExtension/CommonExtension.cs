@@ -1,9 +1,9 @@
 ﻿using Shay.Core.Helper;
+using Shay.Core.Web;
 using System;
 using System.Collections.Specialized;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
@@ -171,7 +171,7 @@ namespace Shay.Core.Extensions
         /// <returns></returns>
         public static string Md5(this string str)
         {
-            return str.IsNullOrEmpty() ? str : SecurityHelper.Md5(str);
+            return str.IsNullOrEmpty() ? str : EncryptHelper.Hash(str, EncryptHelper.HashFormat.MD532);
         }
 
         /// <summary> 读取配置文件 </summary>
@@ -181,7 +181,7 @@ namespace Shay.Core.Extensions
         /// <returns></returns>
         public static T Config<T>(this string configName, T def = default(T))
         {
-            return ConfigHelper.GetAppSetting(null, def, supressKey: configName);
+            return ConfigHelper.Instance.GetAppSetting(def, supressKey: configName);
         }
 
         /// <summary> 小驼峰命名法 </summary>
@@ -312,110 +312,101 @@ namespace Shay.Core.Extensions
             return HttpUtility.UrlDecode(str);
         }
 
-        ///// <summary>
-        ///// 获取该字符串的QueryString值
-        ///// </summary>
-        ///// <typeparam name="T">值类型</typeparam>
-        ///// <param name="str">字符串</param>
-        ///// <param name="def">默认值</param>
-        ///// <returns></returns>
-        //public static T Query<T>(this string str, T def)
-        //{
-        //    try
-        //    {
-        //        var c = HttpContext.Current;
-        //        var qs = c.Request.QueryString[str].Trim();
-        //        return qs.CastTo(def);
-        //    }
-        //    catch
-        //    {
-        //        return def;
-        //    }
-        //}
+        /// <summary> 获取该字符串的QueryString值 </summary>
+        /// <typeparam name="T">值类型</typeparam>
+        /// <param name="str">字符串</param>
+        /// <param name="def">默认值</param>
+        /// <returns></returns>
+        public static T Query<T>(this string str, T def)
+        {
+            try
+            {
+                var c = HttpContext.Current;
+                var qs = c.Request.Query[str].ToString();
+                return qs.CastTo(def);
+            }
+            catch
+            {
+                return def;
+            }
+        }
 
-        ///// <summary>
-        ///// 获取该字符串的Form值
-        ///// </summary>
-        ///// <typeparam name="T">值类型</typeparam>
-        ///// <param name="str">字符串</param>
-        ///// <param name="def">默认值</param>
-        ///// <returns></returns>
-        //public static T Form<T>(this string str, T def)
-        //{
-        //    try
-        //    {
-        //        var c = HttpContext.Current;
-        //        var qs = c.Request.Form[str].Trim();
-        //        return qs.CastTo(def);
-        //    }
-        //    catch
-        //    {
-        //        return def;
-        //    }
-        //}
+        /// <summary> 获取该字符串的Form值 </summary>
+        /// <typeparam name="T">值类型</typeparam>
+        /// <param name="str">字符串</param>
+        /// <param name="def">默认值</param>
+        /// <returns></returns>
+        public static T Form<T>(this string str, T def)
+        {
+            try
+            {
+                var c = HttpContext.Current;
+                var qs = c.Request.Form[str].ToString();
+                return qs.CastTo(def);
+            }
+            catch
+            {
+                return def;
+            }
+        }
 
-        ///// <summary>
-        ///// 获取该字符串QueryString或Form值
-        ///// </summary>
-        ///// <typeparam name="T">值类型</typeparam>
-        ///// <param name="str"></param>
-        ///// <param name="def">默认值</param>
-        ///// <returns></returns>
-        //public static T QueryOrForm<T>(this string str, T def)
-        //{
-        //    try
-        //    {
-        //        var c = HttpContext.Current;
-        //        var qs = c.Request[str].Trim();
-        //        return qs.CastTo(def);
-        //    }
-        //    catch
-        //    {
-        //        return def;
-        //    }
-        //}
+        /// <summary> 获取该字符串QueryString或Form值 </summary>
+        /// <typeparam name="T">值类型</typeparam>
+        /// <param name="str"></param>
+        /// <param name="def">默认值</param>
+        /// <returns></returns>
+        public static T QueryOrForm<T>(this string str, T def)
+        {
+            try
+            {
+                var c = HttpContext.Current;
+                var qs = c.Request.Query.ContainsKey(str) ? c.Request.Query[str].ToString() : c.Request.Form[str].ToString();
+                return qs.CastTo(def);
+            }
+            catch
+            {
+                return def;
+            }
+        }
 
-        ///// <summary>
-        ///// 设置参数
-        ///// </summary>
-        ///// <param name="key">key</param>
-        ///// <param name="value">value</param>
-        ///// <param name="url">url</param>
-        ///// <returns></returns>
-        //public static string SetQuery(this string key, object value, string url = null)
-        //{
-        //    if (url.IsNullOrEmpty())
-        //    {
-        //        url = "http://" + HttpContext.Current.Request.ServerVariables["HTTP_HOST"] +
-        //              HttpContext.Current.Request.RawUrl;
-        //    }
-        //    if (string.IsNullOrWhiteSpace(url) || key.IsNullOrEmpty())
-        //        return url;
-        //    value = value ?? string.Empty;
-        //    var qs = url.Split('?');
-        //    var list = new NameValueCollection();
-        //    if (qs.Length < 2)
-        //    {
-        //        list.Add(key, UrlEncode(value.ToString()));
-        //    }
-        //    else
-        //    {
-        //        foreach (var query in qs[1].Split('&'))
-        //        {
-        //            var item = query.Split('=');
-        //            if (item.Length == 2)
-        //                list.Add(item[0], item[1]);
-        //        }
-        //        list[key] = UrlEncode(value.ToString());
-        //    }
-        //    var search = string.Empty;
-        //    for (var i = 0; i < list.AllKeys.Length; i++)
-        //    {
-        //        search += list.AllKeys[i] + "=" + list[i];
-        //        if (i < list.Count - 1)
-        //            search += "&";
-        //    }
-        //    return qs[0] + "?" + search;
-        //}
+        /// <summary> 设置参数 </summary>
+        /// <param name="key">key</param>
+        /// <param name="value">value</param>
+        /// <param name="url">url</param>
+        /// <returns></returns>
+        public static string SetQuery(this string key, object value, string url = null)
+        {
+            if (url.IsNullOrEmpty())
+            {
+                url = Utils.RawUrl();
+            }
+            if (string.IsNullOrWhiteSpace(url) || key.IsNullOrEmpty())
+                return url;
+            value = value ?? string.Empty;
+            var qs = url.Split('?');
+            var list = new NameValueCollection();
+            if (qs.Length < 2)
+            {
+                list.Add(key, UrlEncode(value.ToString()));
+            }
+            else
+            {
+                foreach (var query in qs[1].Split('&'))
+                {
+                    var item = query.Split('=');
+                    if (item.Length == 2)
+                        list.Add(item[0], item[1]);
+                }
+                list[key] = UrlEncode(value.ToString());
+            }
+            var search = string.Empty;
+            for (var i = 0; i < list.AllKeys.Length; i++)
+            {
+                search += list.AllKeys[i] + "=" + list[i];
+                if (i < list.Count - 1)
+                    search += "&";
+            }
+            return qs[0] + "?" + search;
+        }
     }
 }

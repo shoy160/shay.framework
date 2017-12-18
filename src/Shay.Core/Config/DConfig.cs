@@ -21,9 +21,9 @@ namespace Shay.Core.Config
 
     /// <summary> 开心科技通用配置 </summary>
     [Serializable]
-    [XmlRoot("kaixin")]
-    [FileName("Shay.config")]
-    public class KaixinConfig : ConfigBase
+    [XmlRoot("root")]
+    [FileName("base.config")]
+    public class DConfig : ConfigBase
     {
         /// <summary> 日志服务器地址 </summary>
         [XmlElement("log-server")]

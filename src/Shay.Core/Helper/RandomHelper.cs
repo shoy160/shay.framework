@@ -12,6 +12,7 @@ namespace Shay.Core.Helper
         private const string AllLetter = "mnbvcxzlkjhgfdsapoiuytrewq";
         private const string HardWord = "0oOz29q1ilI6b";
         private const string AllWord = "qwNOPerWXYktyu421ioKfdsS867plVjMZ9hgDEnbTUxcABGHIJaCFmL0vzQR53";
+        private const string SpecialWords = "!@#$%^&*_-";
 
         /// <summary>
         /// 获取线程级随机数
@@ -67,11 +68,17 @@ namespace Shay.Core.Helper
         /// </summary>
         /// <param name="length">长度</param>
         /// <param name="hardWord">是否包含难辨别字符</param>
+        /// <param name="hasSpecial">特殊字符</param>
         /// <returns></returns>
-        public static string RandomNumAndLetters(int length, bool hardWord = false)
+        public static string RandomNumAndLetters(int length, bool hardWord = false, bool hasSpecial = false)
         {
             if (length <= 0) return string.Empty;
-            var list = (hardWord ? AllWord.ToArray() : AllWord.ToArray().Except(HardWord.ToArray())).ToArray();
+            var list = AllWord.ToArray();
+            if (!hardWord)
+                list = list.Except(HardWord.ToArray()).ToArray();
+
+            if (hasSpecial)
+                list = list.Concat(SpecialWords.ToArray()).ToArray();
             var random = Random();
             var sb = new StringBuilder();
             for (var i = 0; i < length; i++)

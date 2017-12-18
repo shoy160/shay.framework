@@ -1,5 +1,6 @@
 ﻿using Shay.Core.Extensions;
 using Shay.Core.Helper;
+using Shay.Core.Web;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -25,7 +26,7 @@ namespace Shay.Core
 
         public static string Md5(string str)
         {
-            return CipherHelper.Hash(str, CipherHelper.HashFormat.MD532);
+            return EncryptHelper.Hash(str, EncryptHelper.HashFormat.MD532);
         }
 
         [DllImport("wininet.dll")]
@@ -150,22 +151,22 @@ namespace Shay.Core
             return Enumerable.Range(min, Math.Abs(max - min));
         };
 
-        ///// <summary> 获取原始Url </summary>
-        ///// <returns></returns>
-        //public static string RawUrl()
-        //{
-        //    if (HttpContext.Current == null)
-        //        return string.Empty;
-        //    try
-        //    {
-        //        var request = HttpContext.Current.Request;
-        //        return $"{request.Url.Scheme}://{request.ServerVariables["HTTP_HOST"]}{request.RawUrl}";
-        //    }
-        //    catch
-        //    {
-        //        return string.Empty;
-        //    }
-        //}
+        /// <summary> 获取原始Url </summary>
+        /// <returns></returns>
+        public static string RawUrl()
+        {
+            if (HttpContext.Current == null)
+                return string.Empty;
+            try
+            {
+                var request = HttpContext.Current.Request;
+                return $"{request.Scheme}://{request.Host}{request.Path.Value}{request.QueryString.Value}";
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
 
         /// <summary> 执行命令 </summary>
         /// <param name="inputAction"></param>

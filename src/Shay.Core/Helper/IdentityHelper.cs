@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace Shay.Core.Helper
 {
@@ -41,6 +42,15 @@ namespace Shay.Core.Helper
             secuentialGuid[10] = binDate[7];
 
             return new Guid(secuentialGuid);
+        }
+
+        public static string Guid16
+        {
+            get
+            {
+                var i = Guid.NewGuid().ToByteArray().Aggregate<byte, long>(1, (current, b) => current * (b + 1));
+                return string.Format("{0:x}", i - DateTimeOffset.Now.Ticks);
+            }
         }
     }
 }

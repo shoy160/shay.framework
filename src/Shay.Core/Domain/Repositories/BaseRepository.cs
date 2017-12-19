@@ -90,10 +90,10 @@ namespace Shay.Core.Domain.Repositories
         public KaixinResults<TEntity> PageList(IOrderedQueryable<TEntity> ordered, DPage page)
         {
             if (ordered == null)
-                return KaixinResult.Errors<TEntity>("数据查询异常！");
+                return DResult.Errors<TEntity>("数据查询异常！");
             var result = ordered.Skip(page.Page * page.Size).Take(page.Size).ToList();
             var total = ordered.Count();
-            return KaixinResult.Succ(result, total);
+            return DResult.Succ(result, total);
         }
 
         public int Count()

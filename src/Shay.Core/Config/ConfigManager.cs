@@ -21,7 +21,7 @@ namespace Shay.Core.Config
             _configCache = new ConcurrentDictionary<string, object>();
             _configPath = _configPath.GetPath();
             if (!Directory.Exists(_configPath))
-                throw new KaixinException($"{_configPath}不存在");
+                throw new DException($"{_configPath}不存在");
             //文件监控
             var watcher = new FileSystemWatcher(_configPath)
             {

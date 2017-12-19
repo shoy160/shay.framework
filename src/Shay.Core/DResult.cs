@@ -6,7 +6,7 @@ namespace Shay.Core
 {
     /// <summary> 基础数据结果类 </summary>
     [Serializable]
-    public class KaixinResult
+    public class DResult
     {
         public bool Status { get; set; }
 
@@ -14,36 +14,36 @@ namespace Shay.Core
 
         public string Message { get; set; }
 
-        public KaixinResult(bool status, string message, int code = 0)
+        public DResult(bool status, string message, int code = 0)
         {
             Status = status;
             Message = message;
             Code = code;
         }
 
-        public KaixinResult(string message, int code = -1)
+        public DResult(string message, int code = -1)
             : this(false, message, code)
         {
         }
 
-        public static KaixinResult Success
+        public static DResult Success
         {
-            get { return new KaixinResult(true, string.Empty); }
+            get { return new DResult(true, string.Empty); }
         }
 
-        public static KaixinResult Error(string message, int code = -1)
+        public static DResult Error(string message, int code = -1)
         {
-            return new KaixinResult(false, message, code);
+            return new DResult(false, message, code);
         }
 
-        public static KaixinResult<T> Succ<T>(T data)
+        public static DResult<T> Succ<T>(T data)
         {
-            return new KaixinResult<T>(true, data);
+            return new DResult<T>(true, data);
         }
 
-        public static KaixinResult<T> Error<T>(string message, int code = -1)
+        public static DResult<T> Error<T>(string message, int code = -1)
         {
-            return new KaixinResult<T>(message, code);
+            return new DResult<T>(message, code);
         }
 
         public static KaixinResults<T> Succ<T>(IEnumerable<T> data, int count = -1)
@@ -58,24 +58,24 @@ namespace Shay.Core
     }
 
     [Serializable]
-    public class KaixinResult<T> : KaixinResult
+    public class DResult<T> : DResult
     {
         public T Data { get; set; }
 
-        public KaixinResult(bool status, T data, int code = 0)
+        public DResult(bool status, T data, int code = 0)
             : base(status, string.Empty, code)
         {
             Data = data;
         }
 
-        public KaixinResult(string message, int code = -1)
+        public DResult(string message, int code = -1)
             : base(false, message, code)
         {
         }
     }
 
     [Serializable]
-    public class KaixinResults<T> : KaixinResult
+    public class KaixinResults<T> : DResult
     {
         public IEnumerable<T> Data { get; set; }
 

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
+using Shay.Core.Extensions;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -64,7 +65,7 @@ namespace Shay.Core.Cache
         public override T Get<T>(string key)
         {
             var value = Get(key);
-            return value == null ? default(T) : (T)value;
+            return value == null ? default(T) : value.CastTo<T>();
         }
 
         public override void Remove(string key)

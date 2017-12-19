@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Shay.Core.Cache;
 using Shay.Core.Extensions;
 using Shay.Core.Helper;
+using Shay.Core.Logging;
+using System;
 using System.Collections.Generic;
 
 namespace Shay.Web.Tests.Controllers
@@ -8,11 +11,22 @@ namespace Shay.Web.Tests.Controllers
     [Route("api/[controller]")]
     public class ValuesController : Controller
     {
+        private readonly ILogger _logger = LogManager.Logger(typeof(ValuesController));
+        private readonly ICache _cache = CacheManager.GetCacher(typeof(ValuesController));
+
         // GET api/values
         [HttpGet]
         public IEnumerable<string> Get()
         {
-            return new string[] { "value1", "value2" };
+            _logger.Info("test");
+            var set = "set".Query(false);
+            if (set)
+            {
+                _cache.Set("test", new string[] { "value1", "value2" }, TimeSpan.FromSeconds(50));
+            }
+            var list = _cache.Get<List<string>>("test");
+            _logger.Debug(list);
+            return list ?? new List<string>();
         }
 
         [HttpGet, Route("config/{value}")]

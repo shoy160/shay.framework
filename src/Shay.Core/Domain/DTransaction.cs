@@ -40,13 +40,13 @@ namespace Shay.Core.Domain
         /// <param name="action"></param>
         /// <param name="level"></param>
         /// <param name="timeout"></param>
-        public static KaixinResult Use(Action action, IsolationLevel level = IsolationLevel.ReadUncommitted,
+        public static DResult Use(Action action, IsolationLevel level = IsolationLevel.ReadUncommitted,
             TimeSpan? timeout = null)
         {
             return Use(() =>
             {
                 action();
-                return KaixinResult.Success;
+                return DResult.Success;
             }, level, timeout);
         }
 

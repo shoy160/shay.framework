@@ -4,6 +4,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shay.Core.Web;
+using Shay.Framework;
+using System;
+using System.Reflection;
 
 namespace Shay.Web.Tests
 {
@@ -21,6 +24,7 @@ namespace Shay.Web.Tests
         {
             services.AddMvc();
             services.AddHttpContextAccessor();
+            DBootstrap.Instance.Initialize(Assembly.GetExecutingAssembly());            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -34,6 +38,7 @@ namespace Shay.Web.Tests
             var logging = Configuration.GetSection("Logging");
             app.UseStaticFiles();
             app.UseStaticHttpContext();
+            app.UseErrorHanleMiddleware();
             app.UseMvc(routes =>
             {
                 routes.MapRoute("default", "api/{controller}/{action=Index}/{id?}");

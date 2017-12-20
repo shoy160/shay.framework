@@ -8,6 +8,7 @@ namespace Shay.Core.Helper
     /// <summary> 加密和解密 </summary>
     public static class EncryptHelper
     {
+        #region 加密类型
         /// <summary>
         /// Hash 加密采用的算法
         /// </summary>
@@ -61,6 +62,7 @@ namespace Shay.Core.Helper
             /// </summary>
             AES
         }
+        #endregion
 
         /// <summary> 对字符串进行 Hash 加密 </summary>
         public static string Hash(string inputString, HashFormat hashFormat = HashFormat.SHA1)
@@ -175,35 +177,322 @@ namespace Shay.Core.Helper
             }
         }
 
-        /// <summary> 使用 RSA 私钥签名 </summary>
-        public static string RsaSignature(string message, string privateKey)
+        #region RSA私有方法
+        private static int GetIntegerSize(BinaryReader binr)
         {
-            using (var rsa = new RSACryptoServiceProvider())
+            byte bt = 0;
+            byte lowbyte = 0x00;
+            byte highbyte = 0x00;
+            int count = 0;
+            bt = binr.ReadByte();
+            if (bt != 0x02)
             {
-                rsa.FromXmlString(privateKey);
-
-                var messageBytes = Encoding.UTF8.GetBytes(message);
-
-                var resultBytes = rsa.SignData(messageBytes, "SHA1");
-
-                return Convert.ToBase64String(resultBytes);
+                return 0;
             }
+
+            bt = binr.ReadByte();
+
+            if (bt == 0x81)
+            {
+                count = binr.ReadByte();
+            }
+            else if (bt == 0x82)
+            {
+                highbyte = binr.ReadByte();
+                lowbyte = binr.ReadByte();
+                byte[] modint = { lowbyte, highbyte, 0x00, 0x00 };
+                count = BitConverter.ToInt32(modint, 0);
+            }
+            else
+            {
+                count = bt;
+            }
+
+            while (binr.ReadByte() == 0x00)
+            {
+                count -= 1;
+            }
+            binr.BaseStream.Seek(-1, SeekOrigin.Current);
+            return count;
+        }
+        private static RSA DecodeRSAPrivateKey(byte[] privkey, string signType)
+        {
+            byte[] MODULUS, E, D, P, Q, DP, DQ, IQ;
+            MemoryStream mem = new MemoryStream(privkey);
+            BinaryReader binr = new BinaryReader(mem);
+            byte bt = 0;
+            ushort twobytes = 0;
+            int elems = 0;
+            try
+            {
+                twobytes = binr.ReadUInt16();
+                if (twobytes == 0x8130)
+                {
+                    binr.ReadByte();
+                }
+                else if (twobytes == 0x8230)
+                {
+                    binr.ReadInt16();
+                }
+                else
+                {
+                    return null;
+                }
+
+                twobytes = binr.ReadUInt16();
+                if (twobytes != 0x0102)
+                {
+                    return null;
+                }
+
+                bt = binr.ReadByte();
+                if (bt != 0x00)
+                {
+                    return null;
+                }
+
+                elems = GetIntegerSize(binr);
+                MODULUS = binr.ReadBytes(elems);
+
+                elems = GetIntegerSize(binr);
+                E = binr.ReadBytes(elems);
+
+                elems = GetIntegerSize(binr);
+                D = binr.ReadBytes(elems);
+
+                elems = GetIntegerSize(binr);
+                P = binr.ReadBytes(elems);
+
+                elems = GetIntegerSize(binr);
+                Q = binr.ReadBytes(elems);
+
+                elems = GetIntegerSize(binr);
+                DP = binr.ReadBytes(elems);
+
+                elems = GetIntegerSize(binr);
+                DQ = binr.ReadBytes(elems);
+
+                elems = GetIntegerSize(binr);
+                IQ = binr.ReadBytes(elems);
+
+                int bitLen = 1024;
+                if ("RSA2".Equals(signType))
+                {
+                    bitLen = 2048;
+                }
+
+                RSA RSA = RSA.Create();
+                RSA.KeySize = bitLen;
+                RSAParameters RSAparams = new RSAParameters
+                {
+                    Modulus = MODULUS,
+                    Exponent = E,
+                    D = D,
+                    P = P,
+                    Q = Q,
+                    DP = DP,
+                    DQ = DQ,
+                    InverseQ = IQ
+                };
+                RSA.ImportParameters(RSAparams);
+                return RSA;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+            finally
+            {
+                binr.Close();
+            }
+        }
+
+        private static bool CompareBytearrays(byte[] a, byte[] b)
+        {
+            if (a.Length != b.Length)
+            {
+                return false;
+            }
+            int i = 0;
+            foreach (byte c in a)
+            {
+                if (c != b[i])
+                {
+                    return false;
+                }
+                i++;
+            }
+            return true;
+        }
+
+        private static RSA CreateRsaProviderFromPublicKey(string publicKeyString, string signType)
+        {
+            byte[] seqOid = { 0x30, 0x0D, 0x06, 0x09, 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x01, 0x01, 0x05, 0x00 };
+            byte[] seq = new byte[15];
+
+            var x509Key = Convert.FromBase64String(publicKeyString);
+            using (MemoryStream mem = new MemoryStream(x509Key))
+            {
+                using (BinaryReader binr = new BinaryReader(mem))
+                {
+                    byte bt = 0;
+                    ushort twobytes = 0;
+
+                    twobytes = binr.ReadUInt16();
+                    if (twobytes == 0x8130)
+                    {
+                        binr.ReadByte();
+                    }
+                    else if (twobytes == 0x8230)
+                    {
+                        binr.ReadInt16();
+                    }
+                    else
+                    {
+                        return null;
+                    }
+
+                    seq = binr.ReadBytes(15);
+                    if (!CompareBytearrays(seq, seqOid))
+                    {
+                        return null;
+                    }
+
+                    twobytes = binr.ReadUInt16();
+                    if (twobytes == 0x8103)
+                    {
+                        binr.ReadByte();
+                    }
+                    else if (twobytes == 0x8203)
+                    {
+                        binr.ReadInt16();
+                    }
+                    else
+                    {
+                        return null;
+                    }
+
+                    bt = binr.ReadByte();
+                    if (bt != 0x00)
+                    {
+                        return null;
+                    }
+
+                    twobytes = binr.ReadUInt16();
+                    if (twobytes == 0x8130)
+                    {
+                        binr.ReadByte();
+                    }
+                    else if (twobytes == 0x8230)
+                    {
+                        binr.ReadInt16();
+                    }
+                    else
+                    {
+                        return null;
+                    }
+
+                    twobytes = binr.ReadUInt16();
+                    byte lowbyte = 0x00;
+                    byte highbyte = 0x00;
+
+                    if (twobytes == 0x8102)
+                    {
+                        lowbyte = binr.ReadByte();
+                    }
+                    else if (twobytes == 0x8202)
+                    {
+                        highbyte = binr.ReadByte();
+                        lowbyte = binr.ReadByte();
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                    byte[] modint = { lowbyte, highbyte, 0x00, 0x00 };
+                    int modsize = BitConverter.ToInt32(modint, 0);
+
+                    int firstbyte = binr.PeekChar();
+                    if (firstbyte == 0x00)
+                    {
+                        binr.ReadByte();
+                        modsize -= 1;
+                    }
+
+                    byte[] modulus = binr.ReadBytes(modsize);
+
+                    if (binr.ReadByte() != 0x02)
+                    {
+                        return null;
+                    }
+                    int expbytes = binr.ReadByte();
+                    byte[] exponent = binr.ReadBytes(expbytes);
+
+                    RSA rsa = RSA.Create();
+                    rsa.KeySize = signType == "RSA" ? 1024 : 2048;
+                    RSAParameters rsaKeyInfo = new RSAParameters
+                    {
+                        Modulus = modulus,
+                        Exponent = exponent
+                    };
+                    rsa.ImportParameters(rsaKeyInfo);
+
+                    return rsa;
+                }
+            }
+        }
+        #endregion
+
+        /// <summary> 使用 RSA 私钥签名 </summary>
+        public static string RsaSignature(string message, string privateKey, string charset = "utf-8", string signType = "RSA")
+        {
+            byte[] signatureBytes = null;
+            try
+            {
+                byte[] data = Convert.FromBase64String(privateKey);
+                var rsa = DecodeRSAPrivateKey(data, signType);
+                using (rsa)
+                {
+                    var messageBytes = Encoding.GetEncoding(charset).GetBytes(message);
+                    if ("RSA2".Equals(signType))
+                        signatureBytes = rsa.SignData(messageBytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                    else
+                        signatureBytes = rsa.SignData(messageBytes, HashAlgorithmName.SHA1, RSASignaturePadding.Pkcs1);
+                }
+            }
+            catch (Exception)
+            {
+                throw new Exception($"您使用的私钥格式错误，请检查RSA私钥配置,charset = {charset}");
+            }
+            return Convert.ToBase64String(signatureBytes);
         }
 
         /// <summary>
         /// 使用 RSA 公钥验证签名
         /// </summary>
-        public static bool RsaVerifySign(string message, string signature, string publicKey)
+        public static bool RsaVerifySign(string message, string signature, string publicKey, string charset = "utf-8", string signType = "RSA")
         {
-            using (var rsa = new RSACryptoServiceProvider())
+            try
             {
-                rsa.FromXmlString(publicKey);
+                string sPublicKeyPEM = publicKey;
+                var rsa = CreateRsaProviderFromPublicKey(sPublicKeyPEM, signType);
+                bool bVerifyResultOriginal = false;
 
-                var messageBytes = Encoding.UTF8.GetBytes(message);
-
-                var signatureBytes = Convert.FromBase64String(signature);
-
-                return rsa.VerifyData(messageBytes, "SHA1", signatureBytes);
+                if ("RSA2".Equals(signType))
+                {
+                    bVerifyResultOriginal = rsa.VerifyData(Encoding.GetEncoding(charset).GetBytes(message),
+                       Convert.FromBase64String(signature), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                }
+                else
+                {
+                    bVerifyResultOriginal = rsa.VerifyData(Encoding.GetEncoding(charset).GetBytes(message),
+                       Convert.FromBase64String(signature), HashAlgorithmName.SHA1, RSASignaturePadding.Pkcs1);
+                }
+                return bVerifyResultOriginal;
+            }
+            catch
+            {
+                return false;
             }
         }
 
@@ -237,10 +526,8 @@ namespace Shay.Core.Helper
             switch (hashFormat)
             {
                 case HashFormat.MD516:
-                    algorithm = MD5.Create();
-                    break;
                 case HashFormat.MD532:
-                    algorithm = MD5.Create();
+                    algorithm = System.Security.Cryptography.MD5.Create();
                     break;
                 //case HashFormat.RIPEMD160:
                 //    algorithm = RIPEMD160.Create();
@@ -317,6 +604,34 @@ namespace Shay.Core.Helper
             }
 
             return algorithm;
+        }
+
+        /// <summary>
+        /// MD5加密
+        /// </summary>
+        /// <param name="data">数据</param>
+        public static string MD5(string data)
+        {
+            return MD5(data, Encoding.UTF8);
+        }
+
+        /// <summary>
+        /// MD5加密
+        /// </summary>
+        /// <param name="data">数据</param>
+        /// <param name="encoding">编码</param>
+        /// <returns></returns>
+        public static string MD5(string data, Encoding encoding)
+        {
+            var md5 = System.Security.Cryptography.MD5.Create();
+            byte[] dataByte = md5.ComputeHash(encoding.GetBytes(data));
+            var sb = new StringBuilder();
+            for (int i = 0; i < dataByte.Length; i++)
+            {
+                sb.Append(dataByte[i].ToString("X2"));
+            }
+
+            return sb.ToString();
         }
     }
 }

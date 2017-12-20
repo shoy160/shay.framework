@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
+using System;
 using System.IO;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace Shay.Core.Helper
@@ -41,7 +43,19 @@ namespace Shay.Core.Helper
             if (!string.IsNullOrWhiteSpace(supressKey))
                 key = supressKey;
             key = $"config:{key}";
-            return _config.GetValue(key, defaultValue);
+            var type = typeof(T);
+            if (type.IsValueType || type == typeof(string))
+                return _config.GetValue(key, defaultValue);
+            var obj = Activator.CreateInstance<T>();
+            var props = type.GetProperties(BindingFlags.Instance | BindingFlags.Public);
+            foreach (var prop in props)
+            {
+                var propKey = $"{key}:{prop.Name}";
+                var value = _config.GetValue<object>(propKey);
+                if (value != null)
+                    prop.SetValue(obj, value);
+            }
+            return obj;
         }
     }
 }

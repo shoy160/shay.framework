@@ -3,7 +3,6 @@ using Shay.Core.Exceptions;
 using Shay.Core.Extensions;
 using Shay.Core.Serialize;
 using Shay.Payment.Attributes;
-using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Reflection;
@@ -92,34 +91,6 @@ namespace Shay.Payment
             }
         }
 
-        private static string GetKeyName(MemberInfo item, NamingType? namingType)
-        {
-            string key;
-            var propName = item.GetCustomAttribute<PropNameAttribute>(true);
-            if (propName != null)
-            {
-                if (propName.Ignore)
-                    return string.Empty;
-                key = propName.Name;
-            }
-            else
-            {
-                switch (namingType)
-                {
-                    case NamingType.CamelCase:
-                        key = item.Name.ToCamelCase();
-                        break;
-                    case NamingType.UrlCase:
-                        key = item.Name.ToUrlCase();
-                        break;
-                    default:
-                        key = item.Name;
-                        break;
-                }
-            }
-            return key;
-        }
-
         /// <summary>
         /// 添加参数
         /// </summary>
@@ -132,7 +103,7 @@ namespace Shay.Payment
             var fields = type.GetFields();
             if (!namingType.HasValue)
             {
-                var typeProp = type.GetCustomAttribute<PropNameAttribute>(true);
+                var typeProp = type.GetCustomAttribute<NamingAttribute>(true);
                 if (typeProp != null)
                     namingType = typeProp.NamingType;
             }
@@ -144,7 +115,7 @@ namespace Shay.Payment
             {
                 foreach (var item in info)
                 {
-                    string key = GetKeyName(item, namingType);
+                    string key = item.PropName(namingType);
                     if (string.IsNullOrWhiteSpace(key))
                         continue;
 
@@ -313,29 +284,7 @@ namespace Shay.Payment
         /// <returns></returns>
         public T ToObject<T>(NamingType? namingType = null)
         {
-            var type = typeof(T);
-            var obj = Activator.CreateInstance(type);
-            var properties = type.GetProperties();
-            if (!namingType.HasValue)
-            {
-                var typeProp = type.GetCustomAttribute<PropNameAttribute>(true);
-                if (typeProp != null)
-                    namingType = typeProp.NamingType;
-            }
-
-            foreach (var item in properties)
-            {
-                string key = GetKeyName(item, namingType);
-                if (string.IsNullOrWhiteSpace(key))
-                    continue;
-                var value = GetValue<string>(key);
-                if (value != null)
-                {
-                    item.SetValue(obj, Convert.ChangeType(value, item.PropertyType));
-                }
-            }
-
-            return (T)obj;
+            return _values.ToObject<T>(namingType);
         }
 
         /// <summary>

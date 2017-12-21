@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Shay.Core.Serialize;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -91,6 +92,27 @@ namespace Shay.Core.Extensions
         public static T[] GetAttributes<T>(this MemberInfo memberInfo, bool inherit = false) where T : Attribute
         {
             return memberInfo.GetCustomAttributes(typeof(T), inherit).Cast<T>().ToArray();
+        }
+
+        public static string PropName(this MemberInfo item, NamingType? namingType)
+        {
+            var propAttr = item.GetCustomAttribute<NamingAttribute>(true);
+            if (propAttr != null)
+            {
+                if (propAttr.Ignore)
+                    return string.Empty;
+                if (!string.IsNullOrWhiteSpace(propAttr.Name))
+                    return propAttr.Name;
+            }
+            switch (namingType)
+            {
+                case NamingType.CamelCase:
+                    return item.Name.ToCamelCase();
+                case NamingType.UrlCase:
+                    return item.Name.ToUrlCase();
+                default:
+                    return item.Name;
+            }
         }
 
         /// <summary>

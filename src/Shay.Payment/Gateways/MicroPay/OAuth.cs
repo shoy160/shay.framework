@@ -1,4 +1,5 @@
-﻿using Shay.Payment.Attributes;
+﻿using Shay.Core.Serialize;
+using Shay.Payment.Attributes;
 using System;
 
 namespace Shay.Payment.Gateways.MicroPay
@@ -23,7 +24,7 @@ namespace Shay.Payment.Gateways.MicroPay
         /// <summary>
         /// 授权用户唯一标识
         /// </summary>
-        [PropName(Constant.OPENID)]
+        [Naming(Constant.OPENID)]
         public string OpenId { get; set; }
 
         /// <summary>
@@ -34,7 +35,7 @@ namespace Shay.Payment.Gateways.MicroPay
         /// <summary>
         /// 当且仅当该网站应用已获得该用户的userinfo授权时，才会出现该字段。
         /// </summary>
-        [PropName(Constant.UNIONID)]
+        [Naming(Constant.UNIONID)]
         public string UnionId { get; set; }
 
         /// <summary>

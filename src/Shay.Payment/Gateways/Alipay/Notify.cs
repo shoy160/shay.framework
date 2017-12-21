@@ -1,4 +1,5 @@
-﻿using Shay.Payment.Attributes;
+﻿using Shay.Core.Serialize;
+using Shay.Payment.Attributes;
 using Shay.Payment.Interfaces;
 using System;
 
@@ -171,7 +172,7 @@ namespace Shay.Payment.Gateways.Alipay
         /// 网关返回码描述,详见文档
         /// https://docs.open.alipay.com/common/105806
         /// </summary>
-        [PropName(Constant.MSG)]
+        [Naming(Constant.MSG)]
         public string Message { get; set; }
 
         /// <summary>
@@ -184,7 +185,7 @@ namespace Shay.Payment.Gateways.Alipay
         /// 网关返回码描述,详见文档
         /// https://docs.open.alipay.com/common/105806
         /// </summary>
-        [PropName(Constant.SUBMSG)]
+        [Naming(Constant.SUBMSG)]
         public string SubMessage { get; set; }
 
         /// <summary>

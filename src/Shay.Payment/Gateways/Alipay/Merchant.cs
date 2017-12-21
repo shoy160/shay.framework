@@ -1,4 +1,5 @@
-﻿using Shay.Payment.Attributes;
+﻿using Shay.Core.Serialize;
+using Shay.Payment.Attributes;
 using Shay.Payment.Enum;
 using Shay.Payment.Interfaces;
 using System;
@@ -62,7 +63,7 @@ namespace Shay.Payment.Gateways.Alipay
         /// 商户私钥
         /// </summary>
         [Required(ErrorMessage = "请设置商户私钥")]
-        [PropName(true)]
+        [Naming(true)]
         public string Privatekey { get; set; }
 
         /// <summary>
@@ -70,7 +71,7 @@ namespace Shay.Payment.Gateways.Alipay
         /// 查看地址：https://openhome.alipay.com/platform/keyManage.htm 对应APPID下的支付宝公钥
         /// </summary>
         [Required(ErrorMessage = "请设置支付宝公钥")]
-        [PropName(true)]
+        [Naming(true)]
         public string AlipayPublicKey { get; set; }
 
         private string returnUrl;

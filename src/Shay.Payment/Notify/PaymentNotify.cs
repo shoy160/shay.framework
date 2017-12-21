@@ -1,4 +1,5 @@
 ﻿using Shay.Core.Exceptions;
+using Shay.Core.Logging;
 using Shay.Core.Web;
 using Shay.Payment.Interfaces;
 using Shay.Payment.Notify.Events;
@@ -14,6 +15,7 @@ namespace Shay.Payment.Notify
         #region 私有字段
 
         private readonly IGateways _gateways;
+        private readonly ILogger _logger = LogManager.Logger<PaymentNotify>();
 
         #endregion
 
@@ -71,6 +73,8 @@ namespace Shay.Payment.Notify
         private DGateway GetGateway()
         {
             var gatewayData = ReadNotifyData();
+            _logger.Info($"orginal:{gatewayData.OriginalData}");
+            _logger.Info($"json:{gatewayData.ToJson()}");
             DGateway gateway = null;
 
             foreach (var item in _gateways.GetList())

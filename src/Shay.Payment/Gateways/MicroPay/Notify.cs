@@ -1,4 +1,5 @@
-﻿using Shay.Payment.Attributes;
+﻿using Shay.Core.Serialize;
+using Shay.Payment.Attributes;
 using Shay.Payment.Interfaces;
 
 namespace Shay.Payment.Gateways.MicroPay
@@ -81,7 +82,7 @@ namespace Shay.Payment.Gateways.MicroPay
         /// 用户标识
         /// 用户在商户appid 下的唯一标识
         /// </summary>
-        [PropName(Constant.OPENID)]
+        [Naming(Constant.OPENID)]
         public string OpenId { get; set; }
 
         /// <summary>

@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Shay.Payment.Gateways.MicroPay
 {
-    [PropName(NamingType.UrlCase)]
+    [Naming(NamingType.UrlCase)]
     public class Order : IDataOrder
     {
         /// <summary>
@@ -50,7 +50,7 @@ namespace Shay.Payment.Gateways.MicroPay
         /// <summary>
         /// 标价金额,订单总金额，单位为元，详见支付金额
         /// </summary>
-        [PropName(Constant.TOTAL_FEE)]
+        [Naming(Constant.TOTAL_FEE)]
         public double Amount
         {
             get => _amount;
@@ -95,7 +95,7 @@ namespace Shay.Payment.Gateways.MicroPay
         /// openid如何获取，可参考【获取openid】。
         /// 企业号请使用【企业号OAuth2.0接口】获取企业号内成员userid，再调用【企业号userid转openid接口】进行转换
         /// </summary>
-        [PropName(Constant.OPENID)]
+        [Naming(Constant.OPENID)]
         public string OpenId { get; set; }
 
         /// <summary>

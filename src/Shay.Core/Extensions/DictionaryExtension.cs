@@ -1,8 +1,11 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Shay.Core.Serialize;
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -216,6 +219,39 @@ namespace Shay.Core.Extensions
                     dict.AddOrUpdate(item.Name, item.Value.ToString());
                 }
             }
+        }
+
+        /// <summary>
+        /// 将网关参数转为类型
+        /// </summary>
+        /// <typeparam name="T">类型</typeparam>
+        /// <param name="namingType">字符串策略</param>
+        /// <returns></returns>
+        public static T ToObject<T>(this IDictionary<string, object> dict, NamingType? namingType = null)
+        {
+            var type = typeof(T);
+            var obj = Activator.CreateInstance(type);
+            var properties = type.GetProperties();
+            if (!namingType.HasValue)
+            {
+                var typeProp = type.GetCustomAttribute<NamingAttribute>(true);
+                if (typeProp != null)
+                    namingType = typeProp.NamingType;
+            }
+
+            foreach (var item in properties)
+            {
+                string key = item.PropName(namingType);
+                if (string.IsNullOrWhiteSpace(key))
+                    continue;
+                var value = dict.GetValue<string>(key);
+                if (value != null)
+                {
+                    item.SetValue(obj, Convert.ChangeType(value, item.PropertyType));
+                }
+            }
+
+            return (T)obj;
         }
     }
 }

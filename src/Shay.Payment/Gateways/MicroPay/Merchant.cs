@@ -1,11 +1,10 @@
 ﻿using Shay.Core.Serialize;
-using Shay.Payment.Attributes;
 using Shay.Payment.Interfaces;
 using System.ComponentModel.DataAnnotations;
 
 namespace Shay.Payment.Gateways.MicroPay
 {
-    [PropName(NamingType.UrlCase)]
+    [Naming(NamingType.UrlCase)]
     public class Merchant : IDataMerchant
     {
 
@@ -15,7 +14,7 @@ namespace Shay.Payment.Gateways.MicroPay
         /// 应用ID
         /// </summary>
         [Required(ErrorMessage = "请输入支付机构提供的应用编号")]
-        [PropName(Constant.APPID)]
+        [Naming(Constant.APPID)]
         public string AppId { get; set; }
 
         /// <summary>
@@ -34,25 +33,25 @@ namespace Shay.Payment.Gateways.MicroPay
         /// 商户支付密钥，参考开户邮件设置
         /// </summary>
         [Required(ErrorMessage = "请设置商户支付密钥")]
-        [PropName(true)]
+        [Naming(true)]
         public string Key { get; set; }
 
         /// <summary>
         /// 应用Secret
         /// </summary>
-        [PropName(true)]
+        [Naming(true)]
         public string AppSecret { get; set; }
 
         /// <summary>
         /// 证书路径,注意应该填写绝对路径
         /// </summary>
-        [PropName(true)]
+        [Naming(true)]
         public string SslCertPath { get; set; }
 
         /// <summary>
         /// 证书密码
         /// </summary>
-        [PropName(true)]
+        [Naming(true)]
         public string SslCertPassword { get; set; }
 
         /// <summary>

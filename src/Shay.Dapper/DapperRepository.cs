@@ -82,15 +82,15 @@ namespace Shay.Dapper
         /// <param name="connectionName"></param>
         /// <param name="level"></param>
         /// <returns></returns>
-        protected KaixinResult Transaction(Action<IDbConnection, IDbTransaction> action, string connectionName = null,
+        protected DResult Transaction(Action<IDbConnection, IDbTransaction> action, string connectionName = null,
             IsolationLevel? level = null)
         {
             var result = Transaction((conn, trans) =>
             {
                 action.Invoke(conn, trans);
-                return KaixinResult.Success;
+                return DResult.Success;
             }, connectionName, level);
-            return result ?? KaixinResult.Error("事务执行失败");
+            return result ?? DResult.Error("事务执行失败");
         }
 
         /// <summary> 插入数据，返回自增的ID </summary>

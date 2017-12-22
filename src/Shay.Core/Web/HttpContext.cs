@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Primitives;
 using System.IO;
 
 namespace Shay.Core.Web
@@ -18,11 +19,16 @@ namespace Shay.Core.Web
         {
             get
             {
-#if DEBUG
-                return "127.0.0.1";
-#else
+                //获取代理IP
+                if (Current.Request.Headers.TryGetValue("HTTP_X_FORWARDED_FOR", out StringValues addr) && !string.IsNullOrWhiteSpace(addr))
+                    return addr;
+                //获取真实IP
+                if (Current.Request.Headers.TryGetValue("X_Real_IP", out addr) && !string.IsNullOrWhiteSpace(addr))
+                    return addr;
+                //获取客户端IP
+                if (Current.Request.Headers.TryGetValue("REMOTE_ADDR", out addr) && !string.IsNullOrWhiteSpace(addr))
+                    return addr;
                 return Current.Connection.RemoteIpAddress.ToString();
-#endif
             }
         }
         /// <summary>
@@ -32,11 +38,7 @@ namespace Shay.Core.Web
         {
             get
             {
-#if DEBUG
-                return "127.0.0.1";
-#else
                 return Current.Connection.LocalIpAddress.ToString();
-#endif
             }
         }
         /// <summary>

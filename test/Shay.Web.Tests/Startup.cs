@@ -25,7 +25,7 @@ namespace Shay.Web.Tests
             services.AddMvc();
             services.AddHttpContextAccessor();
             DBootstrap.Instance.Initialize(Assembly.GetExecutingAssembly());
-            services.AddPayment();
+            services.AddPayment();            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -43,10 +43,11 @@ namespace Shay.Web.Tests
             app.UseStaticFiles();
             app.UseStaticHttpContext();
 
+
             app.UseMvc(routes =>
             {
                 routes.MapRoute("default", "api/{controller}/{action=Index}/{id?}");
-            });
+            });            
         }
     }
 }

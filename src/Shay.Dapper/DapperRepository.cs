@@ -1,8 +1,7 @@
-﻿using System;
-using System.Data;
-using Dapper;
-using Kaixin.Data.Dapper;
+﻿using Dapper;
 using Shay.Core;
+using System;
+using System.Data;
 
 namespace Shay.Dapper
 {

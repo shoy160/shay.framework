@@ -14,6 +14,12 @@ namespace Shay.Web.Tests.Controllers
         private readonly ILogger _logger = LogManager.Logger(typeof(ValuesController));
         private readonly ICache _cache = CacheManager.GetCacher(typeof(ValuesController));
 
+        [HttpGet, Route("~/")]
+        public IActionResult Home()
+        {
+            return RedirectToAction("Get", "Values");
+        }
+
         // GET api/values
         [HttpGet]
         public IEnumerable<string> Get()
@@ -40,7 +46,15 @@ namespace Shay.Web.Tests.Controllers
         {
             var str = "shay".Query(string.Empty);
             var uri = "test".SetQuery("nice");
-            return new { shay = str, uri };
+            var context = Shay.Core.Web.HttpContext.Current;
+            return new
+            {
+                shay = str,
+                uri,
+                headers = HttpContext.Request.Headers,
+                localIp = Core.Web.HttpContext.LocalIpAddress,
+                remoteIp = Core.Web.HttpContext.RemoteIpAddress
+            };
         }
 
         // GET api/values/5

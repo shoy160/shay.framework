@@ -14,6 +14,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Shay.Core\Shay.Core.csproj" />
+    <ProjectReference Include="..\..\src\Shay.Framework\Shay.Framework.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

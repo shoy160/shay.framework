@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using System;
 using System.IO;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace Shay.Core.Helper
@@ -9,16 +8,28 @@ namespace Shay.Core.Helper
     public class ConfigHelper
     {
         private IConfigurationRoot _config;
+        private IConfigurationBuilder _builder;
+        private const string ConfigPrefix = "config:";
+        private const string ConfigName = "appsettings.json";
 
         private ConfigHelper()
         {
-            _config = new ConfigurationBuilder()
-                     .SetBasePath(Directory.GetCurrentDirectory())
-                     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                     .Build();
+            var path = Path.Combine(Directory.GetCurrentDirectory(), ConfigName);
+            _builder = new ConfigurationBuilder()
+                         .SetBasePath(Directory.GetCurrentDirectory());
+            if (File.Exists(path))
+            {
+                _config = _builder.AddJsonFile(ConfigName, optional: false, reloadOnChange: true).Build();
+            }
+            else
+            {
+                _config = _builder.Build();
+            }
         }
 
-        public static ConfigHelper Instance = Singleton<ConfigHelper>.Instance ?? (Singleton<ConfigHelper>.Instance = new ConfigHelper());
+        public static ConfigHelper Instance =
+            Singleton<ConfigHelper>.Instance ?? (Singleton<ConfigHelper>.Instance = new ConfigHelper());
+
 
         /// <summary>
         /// 得到AppSettings中的配置字符串信息
@@ -42,19 +53,13 @@ namespace Shay.Core.Helper
         {
             if (!string.IsNullOrWhiteSpace(supressKey))
                 key = supressKey;
-            key = $"config:{key}";
+            key = $"{ConfigPrefix}{key}";
             var type = typeof(T);
             if (type.IsValueType || type == typeof(string))
                 return _config.GetValue(key, defaultValue);
+
             var obj = Activator.CreateInstance<T>();
-            var props = type.GetProperties(BindingFlags.Instance | BindingFlags.Public);
-            foreach (var prop in props)
-            {
-                var propKey = $"{key}:{prop.Name}";
-                var value = _config.GetValue<object>(propKey);
-                if (value != null)
-                    prop.SetValue(obj, value);
-            }
+            _config.GetSection(key).Bind(obj);
             return obj;
         }
     }

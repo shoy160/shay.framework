@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using Shay.Core.Domain.Entities;
 using Shay.Core.Logging;
 using System;
 using System.Collections.Generic;

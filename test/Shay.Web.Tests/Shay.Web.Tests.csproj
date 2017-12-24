@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-    <DockerComposeProjectPath>..\..\docker-compose.dcproj</DockerComposeProjectPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +13,10 @@
     <EmbeddedResource Remove="_logs\**" />
     <None Remove="wwwroot\**" />
     <None Remove="_logs\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Properties\PublishProfiles\registry.hub.docker.com_shoy160.pubxml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -29,6 +32,16 @@
     <ProjectReference Include="..\..\src\Shay.Core\Shay.Core.csproj" />
     <ProjectReference Include="..\..\src\Shay.Framework\Shay.Framework.csproj" />
     <ProjectReference Include="..\..\src\Shay.Payment\Shay.Payment.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\PublishProfiles\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Dockerfile">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

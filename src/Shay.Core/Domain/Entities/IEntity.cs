@@ -1,7 +1,7 @@
 ﻿
 namespace Shay.Core.Domain.Entities
 {
-    public interface IEntity<TKey>
+    public interface IEntity<TKey> : IEntity
     {
         TKey Id { get; set; }
 
@@ -9,6 +9,5 @@ namespace Shay.Core.Domain.Entities
 
     }
 
-    public interface IEntity : IEntity<int>
-    { }
+    public interface IEntity { }
 }

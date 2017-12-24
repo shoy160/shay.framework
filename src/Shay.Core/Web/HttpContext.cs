@@ -23,7 +23,7 @@ namespace Shay.Core.Web
                 if (Current.Request.Headers.TryGetValue("HTTP_X_FORWARDED_FOR", out StringValues addr) && !string.IsNullOrWhiteSpace(addr))
                     return addr;
                 //获取真实IP
-                if (Current.Request.Headers.TryGetValue("X_Real_IP", out addr) && !string.IsNullOrWhiteSpace(addr))
+                if (Current.Request.Headers.TryGetValue("X_REAL_IP", out addr) && !string.IsNullOrWhiteSpace(addr))
                     return addr;
                 //获取客户端IP
                 if (Current.Request.Headers.TryGetValue("REMOTE_ADDR", out addr) && !string.IsNullOrWhiteSpace(addr))

@@ -21,10 +21,11 @@ namespace Shay.Framework
         protected void Print<T>(T result)
         {
             var type = typeof(T);
-            if (type.IsGenericType)
-                Console.WriteLine(JsonHelper.ToJson(result, NamingType.CamelCase, true));
-            else
+            if (type.IsValueType || type == typeof(string))
                 Console.WriteLine(result);
+            else
+                Console.WriteLine(JsonHelper.ToJson(result, NamingType.CamelCase, true));
+
         }
     }
 }

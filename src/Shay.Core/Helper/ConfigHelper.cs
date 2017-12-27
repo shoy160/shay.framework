@@ -11,6 +11,9 @@ namespace Shay.Core.Helper
         private IConfigurationBuilder _builder;
         private const string ConfigPrefix = "config:";
         private const string ConfigName = "appsettings.json";
+        private IDisposable callbackRegistration;
+
+        public event Action<object> ConfigChanged;
 
         private ConfigHelper()
         {
@@ -25,6 +28,14 @@ namespace Shay.Core.Helper
             {
                 _config = _builder.Build();
             }
+            callbackRegistration = _config.GetReloadToken().RegisterChangeCallback(OnConfigChanged, _config);
+        }
+
+        private void OnConfigChanged(object state)
+        {
+            ConfigChanged?.Invoke(state);
+            callbackRegistration?.Dispose();
+            callbackRegistration = _config.GetReloadToken().RegisterChangeCallback(OnConfigChanged, state);
         }
 
         public static ConfigHelper Instance =

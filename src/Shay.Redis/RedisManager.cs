@@ -1,6 +1,7 @@
 ﻿using Shay.Core;
 using Shay.Core.Exceptions;
 using Shay.Core.Extensions;
+using Shay.Core.Helper;
 using StackExchange.Redis;
 using System;
 using System.Collections.Concurrent;
@@ -10,12 +11,23 @@ namespace Shay.Redis
     /// <summary> Redis管理器 </summary>
     public class RedisManager : IDisposable
     {
+        private const string DefaultConfigName = "redisConfigName";
         private string DefaultName;
         private ConcurrentDictionary<string, ConnectionMultiplexer> _connections;
         private RedisManager()
         {
-            DefaultName = "redisConfigName".Config("default");
+            DefaultName = DefaultConfigName.Config("default");
             _connections = new ConcurrentDictionary<string, ConnectionMultiplexer>();
+
+            ConfigHelper.Instance.ConfigChanged += obj =>
+            {
+                DefaultName = DefaultConfigName.Config("default");
+                if (_connections.Count > 0)
+                {
+                    _connections.Values.Foreach(t => t.Close());
+                    _connections.Clear();
+                }
+            };
         }
 
         public static RedisManager Instance = Singleton<RedisManager>.Instance = (Singleton<RedisManager>.Instance = new RedisManager());

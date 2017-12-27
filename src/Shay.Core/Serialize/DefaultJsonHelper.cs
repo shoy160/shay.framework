@@ -19,6 +19,7 @@ namespace Shay.Core.Serialize
                 setting.Formatting = Formatting.Indented;
             setting.DateFormatHandling = DateFormatHandling.MicrosoftDateFormat;
             setting.DateFormatString = DateFormatString;
+            setting.NullValueHandling = NullValueHandling.Ignore;
             return setting;
         }
 

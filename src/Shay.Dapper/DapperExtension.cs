@@ -1,11 +1,11 @@
-﻿using System;
+﻿using Shay.Core.Cache;
+using Shay.Core.Extensions;
+using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Shay.Core.Cache;
-using Shay.Core.Extensions;
 
 namespace Shay.Dapper
 {
@@ -21,7 +21,7 @@ namespace Shay.Dapper
         /// <param name="commandTimeout"></param>
         /// <param name="commandType"></param>
         /// <returns></returns>
-        public static DataSet QueryDataSet(this IDbConnection cnn, string sql,
+        public static DataSet QueryDataSet(this IDbConnection cnn, string sql, Func<string, string> formatVariable,
             object param = null, IDbDataAdapter adapter = null, int? commandTimeout = null,
             CommandType? commandType = null)
         {
@@ -44,7 +44,7 @@ namespace Shay.Dapper
                     if (propType.IsNullableType() && value == null)
                         continue;
                     var p = command.CreateParameter();
-                    p.ParameterName = $"@{propertyInfo.Name}";
+                    p.ParameterName = formatVariable(propertyInfo.Name);
                     p.Value = value;
                     command.Parameters.Add(p);
                 }
@@ -69,10 +69,18 @@ namespace Shay.Dapper
             DapperCache.Set(key, fields, TimeSpan.FromHours(2));
             return fields;
         }
+
         /// <summary> 生成insert语句 </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         public static string InsertSql(this Type modelType, string[] excepts = null)
+        {
+            return modelType.InsertSql(column => { return $"[{column}]"; }, variable => { return $"@{variable}"; }, excepts);
+        }
+        /// <summary> 生成insert语句 </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static string InsertSql(this Type modelType, Func<string, string> formatColumn, Func<string, string> formatVariable, string[] excepts = null)
         {
             var tableName = modelType.Name;
             var key = $"insert_{modelType.FullName}";
@@ -80,13 +88,13 @@ namespace Shay.Dapper
             if (!string.IsNullOrWhiteSpace(sql))
                 return sql;
             var sb = new StringBuilder();
-            sb.Append($"INSERT INTO [{tableName}]");
+            sb.Append($"INSERT INTO {formatColumn(tableName)}");
 
             var fields = Fields(modelType);
             if (excepts != null && excepts.Any())
                 fields = fields.Except(excepts).ToArray();
-            var fieldSql = string.Join(",", fields.Select(t => $"[{t.ToLower()}]"));
-            var paramSql = string.Join(",", fields.Select(t => $"@{t}"));
+            var fieldSql = string.Join(",", fields.Select(t => formatColumn(t.ToLower())));
+            var paramSql = string.Join(",", fields.Select(t => formatVariable(t)));
             sb.Append($" ({fieldSql}) VALUES ({paramSql})");
             sql = sb.ToString();
             DapperCache.Set(key, sql, TimeSpan.FromHours(1));

@@ -9,6 +9,5 @@ namespace Shay.Core.Domain.Entities
 
     }
 
-    public interface IEntity : IEntity<int>
-    { }
+    public interface IEntity { }
 }

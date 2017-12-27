@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using Shay.Core.Domain.Entities;
 using Shay.Core.Logging;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ namespace Shay.Dapper.Domain
 {
     /// <summary> 基础仓储 </summary>
     /// <typeparam name="T"></typeparam>
-    public class BaseRepository<T> : DapperRepository
+    public class DapperRepository<T> : DRepository
         where T : IEntity
     {
         private readonly string _tableName;
@@ -18,7 +19,7 @@ namespace Shay.Dapper.Domain
 
         /// <summary> 构造 </summary>
         /// <param name="connectionName"></param>
-        public BaseRepository(string connectionName) : base(connectionName)
+        public DapperRepository(string connectionName) : base(connectionName)
         {
             _modelType = typeof(T);
             _tableName = _modelType.Name;
@@ -27,15 +28,15 @@ namespace Shay.Dapper.Domain
 
         /// <summary> 构造 </summary>
         /// <param name="enumType"></param>
-        public BaseRepository(Enum enumType) : this(enumType.ToString())
+        public DapperRepository(Enum enumType) : this(enumType.ToString())
         {
         }
 
         /// <summary> 查询所有数据 </summary>
         public IEnumerable<T> Query()
         {
-            var fields = string.Join(",", _fields.Select(t => $"[{t}]"));
-            var sql = $"SELECT {fields} FROM [{_tableName}]";
+            var fields = string.Join(",", _fields.Select(t => FormatColumn(t)));
+            var sql = $"SELECT {fields} FROM {FormatColumn(_tableName)}";
             _logger.Debug(sql);
             return Connection.Query<T>(sql);
         }
@@ -46,8 +47,8 @@ namespace Shay.Dapper.Domain
         /// <returns></returns>
         public T QueryById(object key, string keyColumn = "id")
         {
-            var fields = string.Join(",", _fields.Select(t => $"[{t}]"));
-            var sql = $"SELECT {fields} FROM [{_tableName}] WHERE [{keyColumn}]=@id";
+            var fields = string.Join(",", _fields.Select(t => FormatColumn(t)));
+            var sql = $"SELECT {fields} FROM {FormatColumn(_tableName)} WHERE {FormatColumn(keyColumn)}={FormatVariable("id")}";
             _logger.Debug(sql);
             return Connection.QueryFirstOrDefault<T>(sql, new { id = key });
         }
@@ -58,7 +59,7 @@ namespace Shay.Dapper.Domain
         /// <returns></returns>
         public int Insert(T model, string[] excepts = null)
         {
-            var sql = _modelType.InsertSql(excepts);
+            var sql = _modelType.InsertSql(FormatColumn, FormatVariable, excepts);
             _logger.Debug(sql);
             return Connection.Execute(sql, model);
         }
@@ -69,22 +70,10 @@ namespace Shay.Dapper.Domain
         /// <returns></returns>
         public int BatchInsert(IEnumerable<T> models, string[] excepts = null)
         {
-            var sql = _modelType.InsertSql(excepts);
+            var sql = _modelType.InsertSql(FormatColumn, FormatVariable, excepts);
             _logger.Debug(sql);
             return Connection.Execute(sql, models.ToArray());
         }
-
-        ///// <summary> 未实现 </summary>
-        ///// <param name="update"></param>
-        ///// <param name="condition"></param>
-        ///// <returns></returns>
-        //public int Update(Expression<Func<T>> update, Expression<Func<T, bool>> condition)
-        //{
-        //    var set = ExpressionHelper.GetExpression(update);
-        //    var where = ExpressionHelper.GetExpression(condition);
-        //    var sql = $"UPDATE [{_tableName}] SET {set} WHERE {where}";
-        //    return Connection.Execute(sql);
-        //}
 
         /// <summary> 删除 </summary>
         /// <param name="key"></param>
@@ -92,7 +81,7 @@ namespace Shay.Dapper.Domain
         /// <returns></returns>
         public int Delete(object key, string keyColumn = "id")
         {
-            var sql = $"DELETE FROM [{_tableName}] WHERE [{keyColumn}]=@key";
+            var sql = $"DELETE FROM {FormatColumn(_tableName)} WHERE {FormatColumn(keyColumn)}={FormatVariable("key")}";
             _logger.Debug(sql);
             return Connection.Execute(sql, new { key });
         }

@@ -30,4 +30,7 @@ WORKDIR /publish
 #设置Docker容器对外暴露5000端口
 EXPOSE 5000
 
+#设置环境变量
+ENV ASPNETCORE_URLS http://*:5000
+
 CMD ["dotnet", "Shay.Web.Tests.dll"]

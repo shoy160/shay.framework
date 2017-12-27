@@ -3,28 +3,40 @@ using Shay.Core;
 using System;
 using System.Data;
 
-namespace Shay.Dapper
+namespace Shay.Dapper.Domain
 {
-    public abstract class DapperRepository
+    public abstract class DRepository
     {
         private readonly string _defaultConnectionName;
         private const string DefaultName = "default";
         /// <summary> 获取默认连接 </summary>
         protected IDbConnection Connection => GetConnection(_defaultConnectionName);
 
-        protected DapperRepository(string connectionName)
+        protected DRepository(string connectionName)
         {
             _defaultConnectionName = string.IsNullOrWhiteSpace(connectionName) ? DefaultName : connectionName;
         }
 
         public static TRepository Instance<TRepository>()
-            where TRepository : DapperRepository, new()
+            where TRepository : DRepository, new()
         {
             return Singleton<TRepository>.Instance ?? (Singleton<TRepository>.Instance = new TRepository());
         }
 
-        protected DapperRepository(Enum enumType) : this(enumType.ToString())
+        protected DRepository(Enum enumType) : this(enumType.ToString())
         {
+        }
+
+        /// <summary>
+        /// 参数化前缀
+        /// </summary>
+        protected virtual string FormatVariable(string variable)
+        {
+            return $"@{variable}";
+        }
+        protected virtual string FormatColumn(string column)
+        {
+            return $"[{column}]";
         }
 
         /// <summary> 获取数据库连接 </summary>
@@ -120,7 +132,7 @@ namespace Shay.Dapper
         protected int UpdateCount(IDbConnection conn, string table, string column, object key, string keyColumn = "id",
             int count = 1, IDbTransaction trans = null)
         {
-            var sql = $"UPDATE [{table}] SET [{column}]=[{column}]+@count WHERE [{keyColumn}]=@id";
+            var sql = $"UPDATE {FormatColumn(table)} SET {FormatColumn(column)}={FormatColumn(column)}+{FormatVariable("count")} WHERE {FormatColumn(keyColumn)}={FormatVariable("id")}";
             return conn.Execute(sql, new { id = key, count }, trans);
         }
 
@@ -132,7 +144,7 @@ namespace Shay.Dapper
         /// <param name="count"></param>
         protected void UpdateCountAsync(string table, string column, object key, string keyColumn = "id", int count = 1)
         {
-            Connection.ExecuteAsync($"UPDATE [{table}] SET [{column}]=[{column}]+@count WHERE [{keyColumn}]=@id",
+            Connection.ExecuteAsync($"UPDATE {FormatColumn(table)} SET {FormatColumn(column)}={FormatColumn(column)}+{FormatVariable("count")} WHERE {FormatColumn(keyColumn)}={FormatVariable("id")}",
                 new { id = key, count });
         }
     }

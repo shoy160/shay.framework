@@ -12,7 +12,7 @@ namespace Shay.Web.Tests.Controllers
     public class ValuesController : Controller
     {
         private readonly ILogger _logger = LogManager.Logger(typeof(ValuesController));
-        private readonly ICache _cache = CacheManager.GetCacher(typeof(ValuesController));
+        private readonly ICache _cache = CacheManager.GetCacher("shay", CacheLevel.Second);
 
         [HttpGet, Route("~/")]
         public IActionResult Home()

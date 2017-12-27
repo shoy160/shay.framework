@@ -40,11 +40,12 @@ namespace Shay.Framework
             _container = Builder.Build();
             IocManager = _container.Resolve<IIocManager>();
             DatabaseInit();
-            AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
-            {
-                var ex = (Exception)e.ExceptionObject;
-                LogManager.Logger(typeof(DBootstrap)).Error(ex.Message, ex);
-            };
+            ModulesInstaller();
+            //AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+            //{
+            //    var ex = (Exception)e.ExceptionObject;
+            //    LogManager.Logger(typeof(DBootstrap)).Error(ex.Message, ex);
+            //};
         }
 
         public override void IocRegisters(Assembly executingAssembly)
